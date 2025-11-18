@@ -1,0 +1,55 @@
+{% load static %}
+{% load i18n %}
+{% load allauth %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="{% static 'ohq/styles.css' %}"> 
+    
+</head>
+<body>
+    <div class="header-bar">
+        <a href="/" style="color: white; text-decoration: none; font-size: 1.5rem; font-weight: 600;">
+            Queue App Home
+        </a>
+    </div>
+
+    <div class="container">
+        <div class="main-section" style="max-width: 500px; margin: 2rem auto;">
+            <h1>{% trans "Sign In" %}</h1>
+            
+                <p>{% blocktrans %}Please sign in with your Google account:{% endblocktrans %}</p>
+            
+                <div class="socialaccount_providers">
+                    {% include "socialaccount/snippets/provider_list.html" with process="login" %}
+                </div>
+                
+                {% include "socialaccount/snippets/login_extra.html" %}
+
+                <div style="display: flex; align-items: center; margin: 2rem 0;">
+                    <hr style="flex-grow: 1; border: none; border-top: 1px solid #ccc;">
+                    <span style="padding: 0 1rem; color: #6c757d; font-weight: 600;">OR</span>
+                    <hr style="flex-grow: 1; border: none; border-top: 1px solid #ccc;">
+                </div>
+        
+                <p>{% blocktrans %}Sign in with your admin username and password:{% endblocktrans %}</p>
+
+                <form class="login" method="post" action="{% url 'account_login' %}">
+                    {% csrf_token %}
+                    
+                    {{ form.as_p }}
+        
+                    {% if redirect_field_value %}
+                    <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+                    {% endif %}
+                    
+                    <button class="btn-primary" type="submit" style="width: 100%;">{% trans "Sign In" %}</button>
+                </form>
+                </div>
+    </div>
+</body>
+</html>

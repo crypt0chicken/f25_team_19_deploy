@@ -1,0 +1,36 @@
+{% load static %}
+{% load i18n %}
+{% load allauth %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% trans "Sign Up" %}</title>
+    <link rel="stylesheet" href="{% static 'ohq/styles.css' %}"> 
+</head>
+<body>
+    <div class="header-bar">
+        <a href="/" style="color: white; text-decoration: none; font-size: 1.5rem; font-weight: 600;">
+            Queue App Home
+        </a>
+    </div>
+
+    <div class="container">
+        <div class="main-section" style="max-width: 500px; margin: 2rem auto;">
+            <h1>{% trans "Sign Up" %}</h1>
+
+                <p>{% blocktrans %}Please sign up using one of your existing third party accounts:{% endblocktrans %}</p>
+            
+                <div class="socialaccount_providers">
+                {% include "socialaccount/snippets/provider_list.html" with process="signup" %}
+                </div>
+                
+                {% include "socialaccount/snippets/login_extra.html" %}
+
+
+        </div>
+    </div>
+</body>
+</html>

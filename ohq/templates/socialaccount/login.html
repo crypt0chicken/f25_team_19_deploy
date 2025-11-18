@@ -1,0 +1,39 @@
+{% load static %}
+{% load i18n %}
+{% load allauth %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% trans "Sign In" %}</title>
+    <link rel="stylesheet" href="{% static 'ohq/styles.css' %}"> 
+</head>
+<body>
+    <div class="header-bar">
+        <a href="/" style="color: white; text-decoration: none; font-size: 1.5rem; font-weight: 600;">
+            Queue App Home
+        </a>
+    </div>
+
+    <div class="container">
+        <div class="main-section" style="max-width: 500px; margin: 2rem auto;">
+            <h1>{% trans "Sign In" %}</h1>
+            
+            {% if process == "connect" %}
+                <p>{% blocktrans with provider.name as provider %}You are about to connect a new third-party account from {{ provider }}.{% endblocktrans %}</p>
+            {% else %}
+                <p>{% blocktrans with provider.name as provider %}You are about to sign in using your third-party account from {{ provider }}.{% endblocktrans %}</p>
+            {% endif %}
+            
+            <form method="post">
+                {% csrf_token %}
+                {% include "socialaccount/snippets/login_extra.html" %} 
+                <button type="submit" class="btn-primary">{% trans "Continue" %}</button>
+            </form>
+            
+        </div>
+    </div>
+</body>
+</html>

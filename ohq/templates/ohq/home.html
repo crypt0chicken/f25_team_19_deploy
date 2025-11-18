@@ -1,0 +1,77 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Office Hours Queue - Select Class</title>
+    <link rel="stylesheet" href="{% static 'ohq/styles.css' %}"> 
+    <script src="{% static 'ohq/queue-list.js' %}" type="text/javascript"></script>
+</head>
+<body>
+
+    <div class="header-bar">
+        <div class="header-bar-left">
+            <a href="/" style="color: white; text-decoration: none; font-size: 1.5rem; font-weight: 600;">
+                CMU OHQ 42
+            </a>
+        </div>
+        <div class="header-bar-right">
+            <div class="header-dropdown-container">
+                <span class="nav-btn header-bar-text" tabindex="0">
+                    {% if account %}
+                        {{ account.nickname }}
+                    {% else %}
+                        Account
+                    {% endif %}
+                </span>
+                <div class="header-dropdown-menu">
+                    <a href="{% url 'user-control-panel' %}">Account</a>
+                    <a href="{% url 'account_logout' %}">Log Out</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if DEBUG %}
+    <span class="container error" id="error">
+    </span>
+    {% endif %}
+
+    <div class="container">
+        {% if account.isAdmin or request.user.is_superuser %}
+            <div class="main-section" style="margin-bottom: 20px; display: flex; gap: 10px;">
+                <a href="{% url 'queue-create' %}" class="btn-primary" style="text-decoration: none;">Create New Queue</a>
+                <a href="{% url 'site-settings' %}" class="btn-secondary" style="text-decoration: none;">Site Settings</a>
+            </div>
+        {% endif %}
+        
+    </div>
+    <div class="container">
+        <div id="pinned">
+            <h1 class="mt-3">Pinned</h1>
+            <div id="pinned-class-grid" class="class-grid"></div>
+        </div>
+        <div id="all">
+            <h1 class="mt-3">All Queues</h1>
+            <div class="search-and-sort">
+                <input type="text" id="search" placeholder="Search..." autocomplete="off">
+                <div class="header-dropdown-container">
+                    <button id="sort" class="btn-primary">Sort</button>
+                    <div id="sort-options" class="header-dropdown-menu">
+                        <button class="dropdown-option" onclick="sortQueues('name')">Course Name</button>
+                        <button class="dropdown-option" onclick="sortQueues('number')">Course Number</button>
+                        <button class="dropdown-option" onclick="sortQueues('recent')">Recently Viewed</button>
+                    </div>
+                </div>
+            </div>
+            <div id="main-class-grid" class="class-grid"></div>
+        </div>
+    
+    </div>
+</body>
+<script>
+    const userID = "{{ user.id }}"
+    window.onload = connectToServer
+</script>
+</html>

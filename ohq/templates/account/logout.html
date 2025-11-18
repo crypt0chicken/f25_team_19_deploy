@@ -1,0 +1,31 @@
+{% load static %}
+{% load i18n %}
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logout</title>
+    <link rel="stylesheet" href="{% static 'ohq/styles.css' %}"> 
+</head>
+<body>
+    <div class="header-bar">
+        <a href="/" style="color: white; text-decoration: none; font-size: 1.5rem; font-weight: 600;">
+            Queue App Home
+        </a>
+    </div>
+
+    <div class="container">
+        <div class="main-section" style="max-width: 500px; margin: 2rem auto;">
+            <h1>{% trans "Sign Out" %}</h1>
+            <p>{% trans 'Are you sure you want to sign out?' %}</p>
+            <form method="post" action="{% url 'account_logout' %}">
+                {% csrf_token %}
+                <button class="btn-primary" type="submit">{% trans 'Sign Out' %}</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

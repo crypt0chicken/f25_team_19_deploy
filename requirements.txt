@@ -1,0 +1,6 @@
+django
+daphne
+channels
+django-allauth
+PyJWT
+requests

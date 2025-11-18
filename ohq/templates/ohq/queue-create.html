@@ -1,0 +1,54 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create New Queue</title>
+    <link rel="stylesheet" href="{% static 'ohq/styles.css' %}"> 
+</head>
+<body>
+
+    <div class="header-bar">
+        <div class="header-bar-left">
+            <a href="{% url 'queue-list' %}" class="nav-btn header-bar-text">Home</a>
+        </div>
+        <div class="header-bar-middle">
+            <span class="header-bar-text-main">
+                Create New Queue
+            </span>
+        </div>
+        <div class="header-bar-right">
+            <div class="header-dropdown-container">
+                <span class="nav-btn header-bar-text" tabindex="0">
+                    {% if account %}
+                        {{ account.nickname }}
+                    {% else %}
+                        Account
+                    {% endif %}
+                </span>
+                <div class="header-dropdown-menu">
+                    <a href="{% url 'user-control-panel' %}">Account</a>
+                    <a href="{% url 'account_logout' %}">Log Out</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if DEBUG %}
+    <span class="container error" id="error">
+    </span>
+    {% endif %}
+    
+    <div class="container">
+        <div class="main-section" style="max-width: 600px; margin: 2rem auto;">
+            <h2>New Queue Details</h2>
+            <form method="POST" action="{% url 'queue-create' %}">
+                {% csrf_token %}
+                {{ form.as_p }}  <button type="submit" class="btn-primary mt-3">Create Queue</button>
+            </form>
+        </div>
+    </div>
+
+</body>
+</html>

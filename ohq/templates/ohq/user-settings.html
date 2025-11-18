@@ -1,0 +1,39 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Office Hours Queue - Edit Account</title>
+    <link rel="stylesheet" href="{% static 'ohq/styles.css' %}"> 
+</head>
+<body>
+
+    <div class="header-bar">
+        <div class="header-bar-left">
+            <a href = "{% url 'queue-list' %}" class="nav-btn header-bar-text">Home</a>
+        </div>
+        <div class="header-bar-middle">
+            <span class="header-bar-text-main">
+                Edit Account Settings
+            </span>
+        </div>
+    </div>
+
+    {% if DEBUG %}
+    <span class="container error" id="error">
+    </span>
+    {% endif %}
+    
+    <div class="container">
+        <form method = "POST" action="">
+            {{ form.as_table }}
+            {% csrf_token %}
+            <div class="queue-item-box-row">
+                This is how you'll appear to course staff.
+                <button class = "btn-primary">Save</button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

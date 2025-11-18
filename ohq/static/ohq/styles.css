@@ -1,0 +1,637 @@
+/*
+ * Office Hours Queue Webapp Stylesheet
+ * Base Font: Calibri
+ * Primary Color: Blue (#007bff)
+ */
+
+/* ----------------------------------------------------
+ * 1. Base and Typography
+ * ---------------------------------------------------- */
+body {
+    /* Font Stack: Calibri with fallbacks */
+    font-family: Calibri, 'Gill Sans', 'Gill Sans MT', 'Trebuchet MS', sans-serif;
+    font-size: 1.1rem;
+    line-height: 1.6; /* Improves overall text readability */
+    color: #343a40; /* Dark gray for body text */
+    background-color: #f8f9fa; /* Very light gray background for the entire app */
+    margin-top: 60px; /* Space needed for the fixed header bar */
+}
+
+h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: #212529;
+}
+
+h2 {
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+    color: #212529;
+}
+
+.weak {
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: #5e666d;
+}
+
+/* ----------------------------------------------------
+ * 2. Layout and Structure
+ * ---------------------------------------------------- */
+.header-bar {
+    background-color: #007bff; /* Primary Blue */
+    color: white;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    padding: 0 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); /* Subtle shadow for depth */
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    box-sizing: border-box;
+}
+
+.header-bar-left,
+.header-bar-middle,
+.header-bar-right {
+    display: flex;
+    align-items: center;
+}
+
+.header-bar-middle {
+    flex: 1;
+    justify-content: center; 
+}
+
+.header-bar-text-main {
+    color: white; 
+    text-decoration: none;
+    font-size: 1.5rem; 
+    font-weight: 600;
+}
+
+.header-bar-text {
+    color: white; 
+    text-decoration: none;
+    font-size: 1rem; 
+    font-weight: 400;
+}
+
+a.nav-btn {
+    display: inline-block;
+    position: relative;
+    text-decoration: none;
+}
+
+.container {
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 15px 15px 30px 15px; /* Added bottom padding */
+}
+
+/* ----------------------------------------------------
+ * 3. Class Grid Layout (NEW ADDITIONS FOR RESPONSIVENESS)
+ * ---------------------------------------------------- */
+
+/* Default: Single column layout for mobile devices */
+.class-grid {
+    display: grid;
+    /* On mobile, stack items one below the other */
+    grid-template-columns: 1fr; 
+    gap: 20px; /* Space between grid items */
+}
+
+/* Media Query: Multi-column layout for larger screens (e.g., tablets and desktops) */
+@media (min-width: 768px) {
+    .class-grid {
+        /* On desktop/tablet, show two columns */
+        grid-template-columns: repeat(2, 1fr); 
+    }
+}
+
+@media (min-width: 1024px) {
+    .class-grid {
+        /* On large desktop screens, show three columns */
+        grid-template-columns: repeat(3, 1fr); 
+    }
+}
+
+/* ----------------------------------------------------
+ * 4. Rectangular Division Boxes (Queue Items / Sections)
+ * ---------------------------------------------------- */
+.queue-item-box, .main-section {
+    background-color: #ffffff;
+    border: 1px solid #dee2e6;
+    border-radius: 8px; /* Slightly rounded corners */
+    padding: 20px;
+    /* Removed margin-bottom here to let the 'gap' property handle spacing */
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.queue-item-box-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.queue-item-box:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.queue-status {
+    border-bottom: 1px solid #e9ecef;
+    padding: 12px 0;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.question-box {
+    border-bottom: 1px solid #e9ecef;
+    padding: 12px 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+/* ----------------------------------------------------
+ * 5. Buttons and Interactive States
+ * ---------------------------------------------------- */
+.btn-primary {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    font-size: 1rem;
+    cursor: pointer;
+    font-family: Calibri, sans-serif;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+}
+
+.btn-primary:active {
+    transform: translateY(1px); /* Subtle press down effect */
+}
+
+.btn-primary:disabled {
+    background-color: #a8d5ff; /* Lighter, faded blue */
+    color: #6c757d;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* --- MODIFICATION: Replaced .btn-secondary-outline with .btn-secondary --- */
+.btn-secondary {
+    background-color: #6c757d; /* Standard gray for secondary actions */
+    color: white;
+    border: 1px solid #6c757d; /* Matching border */
+    border-radius: 5px;
+    padding: 10px 20px;
+    font-size: 1rem;
+    cursor: pointer;
+    font-family: Calibri, sans-serif;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+    text-decoration: none; /* Normalize for <a> tags used as buttons */
+    display: inline-block; /* Normalize for <a> tags */
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268; /* Darker gray on hover */
+    border-color: #545b62;
+    color: white; /* Ensure text stays white */
+}
+
+.btn-secondary:active {
+    transform: translateY(1px); /* Match press-down effect */
+}
+/* --- END MODIFICATION --- */
+
+/* --- New Button Style --- */
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+    border: 1px solid #dc3545;
+    border-radius: 5px;
+    padding: 10px 20px;
+    font-size: 1rem;
+    cursor: pointer;
+    font-family: Calibri, sans-serif;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
+}
+
+.btn-danger:active {
+    transform: translateY(1px);
+}
+/* --- End New Style --- */
+
+a.no-underline {
+    text-decoration: none;
+}
+
+/* ----------------------------------------------------
+ * 6. Forms and Inputs
+ * ---------------------------------------------------- */
+input[type="text"],
+textarea,
+select {
+    width: 100%;
+    padding: 10px;
+    /* margin: 5px 0 15px 0; */
+    display: inline-block;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-family: Calibri, sans-serif;
+    font-size: 1rem;
+}
+
+input[type="text"]:focus,
+textarea:focus,
+select:focus {
+    border-color: #007bff; /* Blue border when active */
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    outline: none;
+}
+
+input.is-invalid {
+    border-color: #dc3545; /* Red border for errors */
+}
+
+textarea.no-resize {
+    resize: none;
+}
+
+.search-and-sort {
+    margin: 5px 0 15px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+/* ----------------------------------------------------
+ * 7. Lists and Queue Display
+ * ---------------------------------------------------- */
+ul, ol {
+    list-style: none; /* Removes bullets/numbers */
+    padding: 0;
+    margin: 0;
+}
+
+.queue-list-item {
+    border-bottom: 1px solid #e9ecef;
+    padding: 12px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.queue-list-item:last-child {
+    border-bottom: none;
+}
+
+/* ----------------------------------------------------
+ * 8. Individual Queue View
+ * ---------------------------------------------------- */
+.open-status {
+    color: #28a745;
+}
+
+.close-status {
+    color: #dc3545;
+}
+
+/* ----------------------------------------------------
+ * 9. Links and Navigation
+ * ---------------------------------------------------- */
+a {
+    color: #007bff;
+    text-decoration: underline;
+    transition: color 0.2s;
+}
+
+a:hover {
+    text-decoration: none;
+    color: #75b8ff;
+}
+
+.link-disabled {
+    color: #9bb9d3;
+    pointer-events: none;
+    cursor: default;
+}
+
+/* ----------------------------------------------------
+ * 10. Status Indicators and Alerts
+ * ---------------------------------------------------- */
+.alert-message {
+    padding: 15px;
+    margin-bottom: 20px;
+    border-left: 5px solid;
+    border-radius: 4px;
+    background-color: #e9ecef;
+    font-size: 1rem;
+}
+
+.alert-success {
+    border-color: #28a745;
+    color: #155724;
+    background-color: #d4edda;
+}
+
+/* --- MODIFICATION: Added error class style --- */
+.error {
+    color: #dc3545; /* Red color, matches .close-status */
+    font-weight: 600;
+}
+/* --- END MODIFICATION --- */
+
+/* ----------------------------------------------------
+ * 11. Utility Classes (Icons and Spacing)
+ * ---------------------------------------------------- */
+.icon {
+    font-size: 1.2em;
+    vertical-align: middle;
+    margin-right: 5px;
+    color: #6c757d;
+}
+
+.icon-blue {
+    color: #007bff;
+}
+
+hr.horizontal {
+    height: 1px;
+    /* display: inline-block; */
+    /* align-self: stretch; */
+    border: 0;
+    border-bottom: 1px solid #99a5af;
+    margin-top: 0.5;
+    margin-bottom: 0.5;
+}
+
+hr.vertical {
+    width: 1px;
+    display: inline-block;
+    align-self: stretch;
+    border: 0;
+    border-left: 1px solid #99a5af;
+    margin-left: 1em;
+    margin-right: 1em;
+}
+
+.wide {
+    width: 100%;
+}
+
+/* Spacing Helpers */
+.mt-3 { margin-top: 1rem !important; }
+.mb-2 { margin-bottom: 0.5rem !important; }
+.p-4 { padding: 1.5rem !important; }
+
+/* Accessibility Helper */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.clearfix::after {
+    content: "";
+    clear: both;
+    display: table;
+}
+
+/* ----------------------------------------------------
+ * 12. Social Auth Buttons (NEW)
+ * ---------------------------------------------------- */
+
+.socialaccount_providers {
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0;
+}
+
+.socialaccount_providers li {
+    margin-bottom: 10px;
+}
+
+.socialaccount-provider {
+    display: block;
+    width: 100%;
+    padding: 12px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-align: center;
+    box-sizing: border-box; /* Ensure padding doesn't break width */
+    transition: all 0.3s ease;
+}
+
+/* Google-specific button style */
+.socialaccount-provider.google {
+    background-color: #4285F4; /* Google Blue */
+    color: white;
+    border: 1px solid #4285F4;
+}
+
+.socialaccount-provider.google:hover {
+    background-color: #357ae8;
+    border-color: #357ae8;
+    color: white;
+}
+
+.socialaccount-provider.google:active {
+    background-color: #2a62c1;
+}
+
+/* You can add more providers like .github, .facebook etc. */
+
+/* ----------------------------------------------------
+ * 13. Announcement Modal (NEW)
+ * ---------------------------------------------------- */
+
+#announcement-modal-overlay {
+    display: none; /* Hidden by default */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
+    z-index: 2000;
+    /* 'display: flex' is added by JS to show the modal */
+    align-items: center;
+    justify-content: center;
+}
+
+#announcement-modal-content {
+    background-color: #ffffff;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-width: 500px;
+    width: 90%;
+    z-index: 2001;
+    /* Word wrapping for long announcements */
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
+}
+
+/* ----------------------------------------------------
+ * 14. Freeze-All Modal (NEW)
+ * ---------------------------------------------------- */
+
+#freeze-all-modal-overlay {
+    display: none; /* Hidden by default */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+}
+
+#freeze-all-modal-content {
+    background-color: #ffffff;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-width: 500px;
+    width: 90%;
+    z-index: 2001;
+}
+
+.modal-button-row {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 1.5rem;
+}
+
+/* ----------------------------------------------------
+ * 15. Delete Queue Modal (NEW)
+ * ---------------------------------------------------- */
+
+#delete-queue-modal-overlay {
+    display: none; /* Hidden by default */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+}
+
+#delete-queue-modal-content {
+    background-color: #ffffff;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-width: 500px;
+    width: 90%;
+    z-index: 2001;
+}
+
+/* ----------------------------------------------------
+ * 16. Header Dropdown
+ * ---------------------------------------------------- */
+.header-dropdown-container {
+    position: relative; /* Establishes a positioning context for the menu */
+    display: inline-block;
+}
+
+/* Style the trigger text to look like the old link */
+.header-dropdown-container .nav-btn {
+    cursor: default;
+    user-select: none; /* Prevent text selection on click */
+    padding: 8px 12px; /* Add padding to make the hover area clearer */
+}
+
+.header-dropdown-menu {
+    display: none; /* *** HIDE BY DEFAULT *** */
+    position: absolute;
+    top: 100%; /* Position it right below the trigger */
+    right: 0; /* Align to the right edge of the container */
+    background-color: #ffffff;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    min-width: 150px;
+    z-index: 1100; /* Ensure it's above other content */
+}
+
+.header-dropdown-menu a {
+    display: block; /* Make links full-width */
+    padding: 10px 15px;
+    color: #343a40; /* Dark text */
+    text-decoration: none;
+    font-size: 1rem;
+    font-weight: 400; /* Match other header-bar-text */
+    white-space: nowrap; /* Prevent "Log Out" from line-breaking */
+}
+
+ .dropdown-option {
+    display: block; 
+    padding: 10px 15px;
+    color: #343a40; 
+    text-decoration: none;
+    font-size: 1rem;
+    font-weight: 400; 
+    white-space: nowrap; 
+    border: none;
+    background-color: white;
+    width: 100%;
+    text-align: start;
+ }
+
+.dropdown-option:hover {
+    background-color: #f8f9fa; /* Light gray hover effect */
+    color: #007bff; /* Blue text on hover */
+}
+
+.header-dropdown-menu a:hover {
+    background-color: #f8f9fa; /* Light gray hover effect */
+    color: #007bff; /* Blue text on hover */
+}
+
+/* Show the menu on hover or when its children have keyboard focus */
+.header-dropdown-container:hover .header-dropdown-menu,
+.header-dropdown-container:focus-within .header-dropdown-menu {
+    display: block;
+}
