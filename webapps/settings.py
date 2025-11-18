@@ -189,7 +189,21 @@ SOCIALACCOUNT_PROVIDERS = {
 
 # Simplify development (optional)
 ACCOUNT_EMAIL_VERIFICATION = 'none'
-ACCOUNT_USERNAME_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_ADAPTER = 'ohq.adapters.AccountAdapter'
+ACCOUNT_ALLOW_REGISTRATION = True
+
+# --- PRODUCTION SECURITY SETTINGS ---
+
+# Trust the "X-Forwarded-Proto" header coming from Nginx
+# This tells Django we are secure even though Nginx talks to Daphne over HTTP
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# Allow CSRF cookies to work over HTTPS on our specific domains
+# We dynamically build this list based on your ALLOWED_HOSTS env var
+CSRF_TRUSTED_ORIGINS = ['https://' + host for host in ALLOWED_HOSTS if host]
+
+# Ensure django-allauth generates HTTPS links (critical for Google Redirect URI)
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = "https"
