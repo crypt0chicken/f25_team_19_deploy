@@ -4,3 +4,6 @@ channels
 django-allauth
 PyJWT
 requests
+psycopg2-binary
+channels_redis
+dj-database-url
