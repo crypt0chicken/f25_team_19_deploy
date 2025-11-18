@@ -41,11 +41,14 @@
     {% endif %}
     
     <div class="container">
-        <div class="main-section" style="max-width: 600px; margin: 2rem auto;">
+        <div class="main-section" style="max-width: 80%; margin: 2rem auto;">
             <h2>New Queue Details</h2>
             <form method="POST" action="{% url 'queue-create' %}">
                 {% csrf_token %}
-                {{ form.as_p }}  <button type="submit" class="btn-primary mt-3">Create Queue</button>
+                <table class="create-queue-table">
+                    {{ form.as_table }} 
+                </table>
+                <button type="submit" class="btn-primary mt-3">Create Queue</button>
             </form>
         </div>
     </div>

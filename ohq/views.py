@@ -2,55 +2,54 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from ohq.models import Account, Queue, AccountEntry, QueueHistory
-from ohq.forms import EditAccountForm, CreateQueueForm # <-- Import CreateQueueForm
+from ohq.forms import EditAccountForm, CreateQueueForm 
 
-# --- New Imports for User Control Panel ---
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from allauth.account.views import EmailView
 from allauth.account.forms import AddEmailForm
 from allauth.account.models import EmailAddress
-from allauth.socialaccount.models import SocialAccount # <-- ADDED
-# --- End New Imports ---
+from allauth.socialaccount.models import SocialAccount
 
-# --- New Imports for API ---
 from django.http import JsonResponse, HttpResponseForbidden, HttpResponseBadRequest
 from django.db.models import Q
 import json
-# --- End New Imports ---
 from ohq.forms import EditAccountForm
 from datetime import datetime
+from urllib.parse import urlencode
 
-# Create your views here.
 def index(request):
-    # Renders the template we created in Phase 2
     print('/index')
     return render(request, 'ohq/home.html', {})
 
-# Actions takeable from the queue list view
 @login_required
 def queue_list_action(request):
     print('/queue_list_action')
     _create_debug_queues()
     context = dict()
-    account = get_object_or_404(Account, user=request.user) # <-- Added
+    account = get_object_or_404(Account, user=request.user)
     context['DEBUG'] = settings.DEBUG
-    context['account'] = account # <-- Added
+    context['account'] = account 
+    context['error'] = request.GET.get('error', None)
     return render(request, 'ohq/home.html', context)
 
-# Actions takeable from an individual queue view
 @login_required
 def queue_action(request, id):
     print('/queue_action')
     context = dict()
-    queue = get_object_or_404(Queue, id=id)
     account = get_object_or_404(Account, user=request.user)
+    try:
+        queue = Queue.objects.get(id=id)
+    except Queue.DoesNotExist:
+        # TODO: include some sort of error popup
+        url = reverse('queue-list') 
+        query_params = urlencode({'error': f"Queue {id} does not exist"})  # Add the error message as query param
+        redirect_url = f"{url}?{query_params}"
+        return redirect(redirect_url)
     
     # Check if user is staff for this queue or a site admin
     is_staff = queue.allowedStaff.filter(id=account.id).exists() or account.isAdmin or request.user.is_superuser
     
-    # --- MODIFICATION: Added 'queue' object to context ---
     context['queue'] = queue 
-    # --- END MODIFICATION ---
     context['queueID'] = queue.id
     context['queue_name'] = queue.queueName
     context['is_open'] = queue.isOpen
@@ -58,7 +57,7 @@ def queue_action(request, id):
     context['DEBUG'] = settings.DEBUG
     context['is_staff'] = is_staff
     context['is_admin'] = account.isAdmin or request.user.is_superuser
-    context['account'] = account # <-- Added
+    context['account'] = account 
 
     # keep track of user's recently viewed queues
     try:
@@ -73,21 +72,6 @@ def queue_action(request, id):
     qh.save()
     return render(request, 'ohq/student-queue.html', context)
 
-# TODO: will need to be updated eventually for oauth
-def login_action(request):
-    print('/login_action')
-    return render(request, 'ohq/not_implemented.html', {})
-
-# TODO: will need to be updated/removed for oauth
-def register_action(request):
-    print('/register_action')
-    return render(request, 'ohq/not_implemented.html', {})
-
-# TODO: will need to be updated for oauth
-def logout_action(request):
-    print('/logout_action')
-    return render(request, 'ohq/not_implemented.html', {})
-
 # Configuring settings for a queue
 @login_required
 def queue_settings_action(request, id):
@@ -101,27 +85,23 @@ def queue_settings_action(request, id):
         return redirect('queue', id=id) # Redirect non-authorized
 
     if request.method == 'POST':
-        # --- MODIFICATION: Handle only delete action ---
         if 'action_delete_queue' in request.POST:
             queue.delete()
             # Redirect to the homepage (queue list) after deletion.
             return redirect('queue-list')
-        # --- END MODIFICATION ---
 
-    # --- MODIFICATION: Handle the GET request for new UI ---
     # Query for current staff to display
     current_staff = queue.allowedStaff.all().order_by('nickname')
 
     context = {
         'queue': queue,
-        'current_staff': current_staff, # Pass current staff
+        'current_staff': current_staff, 
         'DEBUG': settings.DEBUG,
         'account': account,
     }
     return render(request, 'ohq/queue-settings.html', context)
-    # --- END MODIFICATION ---
 
-# --- New Queue Creation View ---
+# --- Queue Creation View ---
 @login_required
 def queue_create_action(request):
     print('/queue_create_action')
@@ -149,15 +129,14 @@ def queue_create_action(request):
         'DEBUG': settings.DEBUG,
     }
     return render(request, 'ohq/queue-create.html', context)
-# --- End New View ---
 
 
-# --- New User Control Panel View ---
-
+# --- User Control Panel View ---
 @login_required
 def user_control_panel(request):
     print('/user_control_panel')
     account = get_object_or_404(Account, user=request.user)
+    error = ''
 
     # Handle nickname form submission
     if request.method == "POST" and 'action_save_nickname' in request.POST:
@@ -165,6 +144,9 @@ def user_control_panel(request):
         if form.is_valid():
             form.save()
             return redirect('user-control-panel')
+        else:
+            form = EditAccountForm(instance=account)
+            error = "Nickname must be non-empty"
     else:
         form = EditAccountForm(instance=account)
 
@@ -172,28 +154,24 @@ def user_control_panel(request):
     emailaddresses = EmailAddress.objects.filter(user=request.user)
     email_add_form = AddEmailForm(user=request.user)
     
-    # --- ADDED: Check if user is a social account user ---
     is_social_account = SocialAccount.objects.filter(user=request.user).exists()
-    # --- END ADDED ---
 
     context = {
         'account': account,
         'form': form, # For the nickname form
         'emailaddresses': emailaddresses, # For allauth email list
         'email_add_form': email_add_form, # For allauth add email form
-        'is_social_account': is_social_account, # <-- ADDED
+        'is_social_account': is_social_account, 
         'DEBUG': settings.DEBUG,
+        'error': error,
     }
     return render(request, 'ohq/user_control_panel.html', context)
-
-# --- New Allauth Override View ---
 
 class CustomEmailView(EmailView):
     # Override the success_url to redirect back to our control panel
     success_url = reverse_lazy('user-control-panel')
 
-
-# --- New API View for User Search ---
+# --- API View for User Search ---
 @login_required
 def user_search_api(request, id):
     print('/api_search_users')
@@ -215,14 +193,12 @@ def user_search_api(request, id):
     ).exclude(
         staff__id=queue.id
     ).values(
-        'id', 'nickname', 'email', 'isAdmin' # <-- MODIFIED: Added isAdmin
+        'id', 'nickname', 'email', 'isAdmin' 
     )[:10] # Limit to 10 results
 
     return JsonResponse(list(results), safe=False)
-# --- End New API View ---
 
-
-# --- New API View for Managing Staff ---
+# --- API View for Managing Staff ---
 @login_required
 def manage_queue_staff_api(request, id):
     print('/api_manage_staff')
@@ -250,7 +226,6 @@ def manage_queue_staff_api(request, id):
             queue.allowedStaff.add(account_to_manage)
         elif action == 'remove':
             queue.allowedStaff.remove(account_to_manage)
-        # --- NEW ACTION ---
         elif action == 'toggle_admin':
             is_admin = data.get('is_admin')
             if is_admin is None:
@@ -258,7 +233,6 @@ def manage_queue_staff_api(request, id):
             
             account_to_manage.isAdmin = is_admin
             account_to_manage.save()
-        # --- END NEW ACTION ---
         else:
             raise ValueError('Invalid action')
 
@@ -266,11 +240,8 @@ def manage_queue_staff_api(request, id):
 
     except Exception as e:
         return HttpResponseBadRequest(json.dumps({'error': str(e)}), content_type='application/json')
-# --- End New API View ---
 
-
-# --- START: New Site Admin Views ---
-
+# --- START: Site Admin Views ---
 @login_required
 def site_settings_action(request):
     print('/site_settings_action')
@@ -351,30 +322,6 @@ def manage_site_admin_api(request):
 
     except Exception as e:
         return HttpResponseBadRequest(json.dumps({'error': str(e)}), content_type='application/json')
-
-# --- END: New Site Admin Views ---
-
-
-# This view is now DEPRECATED and will be redirected by webapps/urls.py
-@login_required
-def user_settings_action(request, id):
-    print('/user_settings_action (DEPRECATED)')
-    context = dict()
-    try:
-        account = Account.objects.get(user = request.user)
-        context['account'] = account
-        context['form'] = EditAccountForm(instance = account)
-        if request.method == "GET":
-            return render(request, 'ohq/user-settings.html', context)
-        form = EditAccountForm(request.POST, instance = account)
-        context['form'] = form
-        if not form.is_valid():
-            return render(request, 'ohq/user-settings.html', context)
-        form.save()
-        return render(request, 'ohq/user-settings.html', context)
-    except Account.DoesNotExist:
-        context['error'] = "Account does not exist"
-        return render(request, 'ohq/user-settings.html', context)
 
 def _create_debug_queues():
     # objects already exist. creating debug entry is unnecessary

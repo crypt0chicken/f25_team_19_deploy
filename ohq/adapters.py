@@ -10,9 +10,10 @@ class AccountAdapter(DefaultAccountAdapter):
 
         return True
         
-        # Following logic unnecessary; Google Auth is configured to only allow andrew.cmu.edu logins
-
         if not sociallogin:
+            print(sociallogin)
+            # This would apply if you had a local signup form.
+            # We are only using Google, so this is a fallback.
             messages.error(request, "Sign up is only permitted via your Google account.")
             return False
 
@@ -39,8 +40,11 @@ class AccountAdapter(DefaultAccountAdapter):
             messages.error(request, "Could not determine your email from Google. Please try again.")
             return False
 
+        # --- This is the validation check ---
         if not email.endswith('@andrew.cmu.edu'):
+            # Add an error message to be displayed to the user
             messages.error(request, 'Access Denied: You must sign up with an @andrew.cmu.edu email address.')
+            # Return False to block the signup
             return False
         
         # If email is valid, allow the signup

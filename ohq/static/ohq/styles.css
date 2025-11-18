@@ -635,3 +635,28 @@ hr.vertical {
 .header-dropdown-container:focus-within .header-dropdown-menu {
     display: block;
 }
+
+/* ----------------------------------------------------
+ * 16. Creating queue form
+ * ---------------------------------------------------- */
+ .create-queue-table th {
+    text-align: end;
+    padding: 10px 15px;
+ }
+
+/* ----------------------------------------------------
+ * 17. Pop ups
+ * ---------------------------------------------------- */
+
+ .error-popup {
+    position: fixed;
+    background-color: white;
+    color: #343a40;
+    cursor: pointer;
+    z-index: 1000; /* Ensure popup is on top of other content */
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    bottom: 2rem;
+    right: 2rem;
+ }

@@ -67,11 +67,22 @@
             </div>
             <div id="main-class-grid" class="class-grid"></div>
         </div>
-    
     </div>
+    {% if error %}
+    <div id="error-popup" class="error-popup">
+        {{ error }}
+    </div>
+    {% endif %}
 </body>
 <script>
     const userID = "{{ user.id }}"
     window.onload = connectToServer
+    {% if error %}
+    history.replaceState(null, '', window.location.pathname)
+    document.getElementById('error-popup').addEventListener('click', function () {
+        console.log('hiiii')
+        this.style.display = 'none'
+    })
+    {% endif %}
 </script>
 </html>

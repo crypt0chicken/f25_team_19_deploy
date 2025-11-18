@@ -1,8 +1,6 @@
 from django.contrib.auth.models import User # possibly unnecessary once we use Oauth?
 from django.db import models
 
-# Create your models here.
-
 # Stores additional information about a user of the OHQ outside of 
 # Django user class itself.
 class Account(models.Model):
@@ -19,7 +17,6 @@ class Queue(models.Model):
     isOpen = models.BooleanField(default = False)
     freeze_timeout = models.IntegerField(default=600) # Frozen students will be placed back into the queue after this number of seconds
     
-    # --- FIX: Removed symmetrical=True from all ManyToManyFields ---
     allowedStaff = models.ManyToManyField(Account, related_name = 'staff')
     allowedStudents = models.ManyToManyField(Account, related_name = 'students')
     # field linking queues to who has pinned them
@@ -27,8 +24,6 @@ class Queue(models.Model):
     # field linking queues to who has hidden them
     hiddenQueues = models.ManyToManyField(Account, related_name = 'hidden')
     
-    # --- END FIX ---
-
     @classmethod
     def get_queues(cls, account, orderBy='queueName'):
         pinned_list = []
@@ -43,10 +38,10 @@ class Queue(models.Model):
             entry_dict = {
                 'id': entry.id,
                 'name': entry.queueName,
+                'number': entry.courseNumber[:2] + '-' + entry.courseNumber[2:],
                 'description': entry.description,
                 'status': entry.isOpen,
             }
-            # TODO: check whether queue is pinned by user and put in pinned list if so
             if entry in pinned:
                 pinned_list.append(entry_dict)
             all_queues.append(entry_dict)
@@ -74,6 +69,7 @@ class Queue(models.Model):
             entry_dict = {
                 'id': entry.id,
                 'name': entry.queueName,
+                'number': entry.courseNumber[:2] + '-' + entry.courseNumber[2:],
                 'description': entry.description,
                 'status': entry.isOpen,
             }
@@ -83,7 +79,6 @@ class Queue(models.Model):
 
 # Class for students who have put themselves on the queue
 class AccountEntry(models.Model):
-
     # Add choices for the new status field
     STATUS_WAITING = 'waiting'
     STATUS_HELPING = 'helping'

@@ -3,12 +3,21 @@ from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 
+from django.core.exceptions import ValidationError
+
 from ohq.models import Account, Queue
 
 class EditAccountForm(forms.ModelForm):
     class Meta:
         model = Account
         fields = ('nickname',)
+
+    def clean_nickname(self):
+        data = self.cleaned_data['nickname']
+        if len(data) == 0:
+            raise ValidationError("Nickname cannot be empty")
+        
+        return data
 
 class CreateQueueForm(forms.ModelForm):
     class Meta:
@@ -19,7 +28,6 @@ class CreateQueueForm(forms.ModelForm):
             'courseNumber',
             'description', 
             'isPublic', 
-            'isOpen', 
             'freeze_timeout'
         ]
 
@@ -30,9 +38,8 @@ class CreateQueueForm(forms.ModelForm):
         labels = {
             'queueName': 'Queue Name',
             'courseNumber': 'Course Number',
-            'isPublic': 'Make this queue public',
-            'isOpen': 'Open this queue immediately',
-            'freeze_timeout': 'Auto-Unfreeze Timeout (in seconds)',
+            'isPublic': 'Public Queue',
+            'freeze_timeout': 'Auto-Unfreeze Timeout',
         }
         
         help_texts = {
@@ -42,3 +49,10 @@ class CreateQueueForm(forms.ModelForm):
                 'Set to 0 to disable auto-unfreezing.'
             ),
         }
+    def clean_courseNumber(self):
+        data = self.cleaned_data['courseNumber']
+        if not data.isdigit():
+            raise ValidationError("Course number must be numerical")
+        if not len(data) == 5:
+            raise ValidationError("Course number has wrong number of digits")
+        return data

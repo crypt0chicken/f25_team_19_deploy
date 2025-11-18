@@ -89,7 +89,7 @@ class QueueConsumer(WebsocketConsumer):
                 self.received_ask_question(data)
             case 'leave-queue':
                 self.received_leave_queue(data)
-            case 'unfreeze': # <-- New Action
+            case 'unfreeze': 
                 self.received_unfreeze(data)
         # COURSE STAFF ACTIONS
             case 'freeze':
@@ -102,7 +102,7 @@ class QueueConsumer(WebsocketConsumer):
                 self.received_toggle_queue(data)
             case 'send-announcement': 
                 self.received_send_announcement(data)
-            case 'freeze-all': # <-- New Action
+            case 'freeze-all': 
                 self.received_freeze_all(data)
             case _:
                 self.send_error(f'Invalid action property: "{action}"')
@@ -122,11 +122,9 @@ class QueueConsumer(WebsocketConsumer):
             self.send_error('"text" property not sent in JSON')
             return
         
-        # --- MODIFICATION: Check if queue is open ---
         if not self.queue.isOpen:
             self.send_error('The queue is closed. You cannot join at this time.')
             return
-        # --- END MODIFICATION ---
 
         # Check if user is already in this queue
         if AccountEntry.objects.filter(account=self.account, queue=self.queue).exists():
@@ -223,7 +221,6 @@ class QueueConsumer(WebsocketConsumer):
         
         self.broadcast_announcement(data['text'])
 
-    # --- New Function ---
     def received_freeze_all(self, data):
         if not self.is_staff():
             return self.send_error('You are not authorized to perform this action.')
@@ -239,16 +236,12 @@ class QueueConsumer(WebsocketConsumer):
         )
         
         self.broadcast_queue_state()
-    # --- End New Function ---
 
     def send_error(self, error_message):
         self.send(text_data=json.dumps({'error': error_message}))
 
     # This function will broadcast everything related to the queue state.
-    # TODO: possibly for efficiency, you can broadcast only things about 
-    #       the state that have changed.
     def broadcast_queue_state(self):
-        # --- New Auto-Unfreeze Logic ---
         timeout_minutes = self.queue.freeze_timeout
         if timeout_minutes > 0: # Only run if auto-unfreeze is enabled
             cutoff_time = timezone.now() - timezone.timedelta(minutes=timeout_minutes)
@@ -259,7 +252,6 @@ class QueueConsumer(WebsocketConsumer):
             )
             # Update them back to 'waiting'
             stale_entries.update(status=AccountEntry.STATUS_WAITING, freezeTime=None)
-        # --- End New Logic ---
 
         async_to_sync(self.channel_layer.group_send)(
             self.group_name,
@@ -325,12 +317,31 @@ class QueueListConsumer(WebsocketConsumer):
             self.close()
             return
 
+        self.last_sort_type = 'name' # what this user has their courses sorted by
+        self.query = '' # current query, if any
         self.broadcast_queue_list_state()
 
     def disconnect(self, close_code):
         async_to_sync(self.channel_layer.group_discard)(
             self.group_name, self.channel_name
         )
+
+    def queue_add(self, event):
+        # re-broadcast whatever the main queue list section view is like
+        print("Hello?")
+        print(repr(self.query), self.last_sort_type)
+        if len(self.query) == 0:
+            print("self.last_sort_type")
+            self.received_sort({'type': self.last_sort_type})
+        else:
+            self.received_search({"query": self.query})
+
+    # A queue has been deleted
+    def queue_delete(self, event):
+        print('dele')
+        if 'queueID' not in event:
+            return
+        self.send(text_data=json.dumps({'type': 'queue-delete', 'queueID': event['queueID']}))
 
     def receive(self, **kwargs):
         if 'text_data' not in kwargs:
@@ -390,8 +401,9 @@ class QueueListConsumer(WebsocketConsumer):
         if 'query' not in data:
             return self.send_error("queueID not sent in JSON")
         query = data['query']
+        self.query = query
         if query == '':
-            self.broadcast_queue_list_state()
+            self.received_sort({"type": self.last_sort_type})
         else: 
             self.broadcast_search(query)
 
@@ -400,15 +412,19 @@ class QueueListConsumer(WebsocketConsumer):
             return self.send_error("sort type not sent in JSON")
         match data['type']:
             case "name":
+                self.last_sort_type = "name"
                 _, queues = Queue.get_queues(self.account, orderBy="queueName")
                 self.broadcast_sort(queues)
             case "number":
+                self.last_sort_type = "number"
                 _, queues = Queue.get_queues(self.account, orderBy="courseNumber")
                 self.broadcast_sort(queues)
             case "recent":
+                self.last_sort_type = "recent"
                 _, queues = Queue.get_queues(self.account, orderBy="recent")
                 self.broadcast_sort(queues)
             case "none":
+                self.last_sort_type = "name"
                 self.broadcast_queue_list_state()
 
     def send_error(self, error_message):

@@ -67,6 +67,18 @@ function updateState(response) {
     }
     console.log(response)
 
+    // Micro updates to the queue list rather than an action from the user themselves
+    if (response.hasOwnProperty('type')) {
+        if (response['type'] == 'queue-delete') {
+            if (!response.hasOwnProperty('queueID')) {
+                displayError("Json missing property 'queueID")
+            }
+            removeQueueFromPage(response['queueID'])
+        }
+        return
+    }
+
+    // Actions from the user
     if (!response.hasOwnProperty('userID')) {
         displayError("JSON missing property 'userID")
     }
@@ -81,7 +93,24 @@ function updateState(response) {
     if (response.hasOwnProperty('queues')) {
         updateMainQueueList(response['queues'])
     }
+}
 
+// Remove queue entry from pinned section and all queues section
+function removeQueueFromPage(queueID) {
+    let pinnedItems = document.querySelectorAll(".queue-item-box.pinned-list")
+    for (let i = 0; i < pinnedItems.length; i++) {
+        let element = pinnedItems[i]
+        if (element.id == `pinned_queue_${queueID}`) {
+            element.remove()
+        }
+    }
+    let queueItems = document.querySelectorAll(".queue-item-box.main-list")
+    for (let i = 0; i < queueItems.length; i++) {
+        let element = queueItems[i]
+        if (element.id == `queue_${queueID}`) {
+            element.remove()
+        }
+    }
 }
 
 function updatePinnedQueueList(queueList) {
@@ -147,7 +176,7 @@ function makeQueueItemElement(queueItem, queueListType) {
     let element = document.createElement("div")
     element.id = id
     element.className = `queue-item-box ${className}`
-    element.innerHTML = `<div class="queue-item-box-row">${queueName} ${pinButton}</div><div class="queue-item-box-row">${description} ${openButton}</div>`
+    element.innerHTML = `<div class="queue-item-box-row">${queueName} ${pinButton}</div>${queueItem.number}<div class="queue-item-box-row">${description} ${openButton}</div>`
 
     return element
 }
