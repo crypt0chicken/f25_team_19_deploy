@@ -26,7 +26,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-^%&y)%buw+&h(mdovi%b@$aqls434f(hyzez!qr!qp(%=5d32x')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+# Default to True for local development convenience, unless explicitly set to False
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 # ALLOWED_HOSTS is a comma-separated list in the .env file
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
@@ -72,6 +73,7 @@ else:
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware', # <-- Added Whitenoise for static file serving
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -148,10 +150,14 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+# Must be absolute path (leading slash) to work on sub-pages like /queue/1
+STATIC_URL = '/static/'
 
-# Directory where collectstatic will gather files for Nginx to serve
+# Directory where collectstatic will gather files for Nginx/Whitenoise to serve
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# Use Whitenoise storage to handle compression and caching
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
