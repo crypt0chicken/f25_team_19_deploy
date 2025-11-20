@@ -468,13 +468,21 @@ async function handleRemoveStudent(event, queueID, csrfToken) {
 
     const accountId = button.dataset.accountId;
     const listItem = button.closest('li[data-list-item-id]');
-    
-    if (confirm(`Are you sure you want to remove this student?`)) {
-        const success = await manageStudent('remove', accountId, queueID, csrfToken);
-        if (success) {
-            removeStudentFromList(listItem);
-        } else {
-            alert('Failed to remove student. Please try again.');
+
+    var overlay = document.getElementById('remove-student-modal-overlay');
+    // delete staff button has been clicked. show overlay
+    overlay.style.display = 'flex'
+    var removeBtn = document.getElementById("remove-student-confirm-btn")
+    if (removeBtn) {
+        removeBtn.onclick = async function() {
+            const success = await manageStudent('remove', accountId, queueID, csrfToken)
+            if (success) {
+                removeStudentFromList(listItem)
+            } else {
+                // show some error
+                alert('Failed to remove student. Please try again.');
+            }
+            overlay.style.display = 'none'
         }
     }
 }

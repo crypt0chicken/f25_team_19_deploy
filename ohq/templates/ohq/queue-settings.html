@@ -144,6 +144,29 @@
         });
     </script>
 
+    <div id="remove-student-modal-overlay">
+        <div id="remove-student-modal-content">
+            <h2>Confirm Removal</h2>
+            <p>Are you sure you want to remove this student? <div id="student-name"></div></p>
+            <div class="modal-button-row">
+                <button id="remove-student-cancel-btn" class="btn-secondary">Cancel</button>
+                <button id="remove-student-confirm-btn" class="btn-danger">Yes, remove</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        window.addEventListener('load', function() {
+            var overlay = document.getElementById('remove-student-modal-overlay');
+            var cancelBtn = document.getElementById('remove-student-cancel-btn');
+
+            if (cancelBtn) {
+                cancelBtn.onclick = function() {
+                    overlay.style.display = 'none';
+                }
+            }
+        });
+    </script>
+
     <script src="{% static 'ohq/queue-settings.js' %}" type="text/javascript"></script>
     <script>
         // Pass Django data to JavaScript

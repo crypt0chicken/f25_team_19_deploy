@@ -664,7 +664,8 @@ hr.vertical {
  * 18. Remove Staff Modal
  * ---------------------------------------------------- */
 
-#remove-staff-modal-overlay {
+#remove-staff-modal-overlay,
+#remove-student-modal-overlay {
     display: none; /* Hidden by default */
     position: fixed;
     top: 0;
@@ -677,7 +678,8 @@ hr.vertical {
     justify-content: center;
 }
 
-#remove-staff-modal-content {
+#remove-staff-modal-content,
+#remove-student-modal-content {
     background-color: #ffffff;
     padding: 2rem;
     border-radius: 8px;
