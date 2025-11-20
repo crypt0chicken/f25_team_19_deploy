@@ -17,6 +17,7 @@ import dj_database_url
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+PROTOCOL='https' # use https for production, http for development
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -205,11 +206,12 @@ ACCOUNT_ALLOW_REGISTRATION = True
 
 # Trust the "X-Forwarded-Proto" header coming from Nginx
 # This tells Django we are secure even though Nginx talks to Daphne over HTTP
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', PROTOCOL)
 
 # Allow CSRF cookies to work over HTTPS on our specific domains
 # We dynamically build this list based on your ALLOWED_HOSTS env var
-CSRF_TRUSTED_ORIGINS = ['https://' + host for host in ALLOWED_HOSTS if host]
+CSRF_TRUSTED_ORIGINS = [PROTOCOL+'://' + host for host in ALLOWED_HOSTS if host]
 
 # Ensure django-allauth generates HTTPS links (critical for Google Redirect URI)
-ACCOUNT_DEFAULT_HTTP_PROTOCOL = "https"
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = PROTOCOL
+
