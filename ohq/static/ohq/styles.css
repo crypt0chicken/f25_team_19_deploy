@@ -67,8 +67,9 @@ h2 {
 }
 
 .header-bar-middle {
-    flex: 1;
-    justify-content: center; 
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
 .header-bar-text-main {
