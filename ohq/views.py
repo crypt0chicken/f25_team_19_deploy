@@ -45,9 +45,17 @@ def queue_action(request, id):
         query_params = urlencode({'error': f"Queue {id} does not exist"})  # Add the error message as query param
         redirect_url = f"{url}?{query_params}"
         return redirect(redirect_url)
-    
+
     # Check if user is staff for this queue or a site admin
     is_staff = queue.allowedStaff.filter(id=account.id).exists() or account.isAdmin or request.user.is_superuser
+
+    if (not queue.isPublic and not (queue.allowedStudents.filter(id=account.id).exists()
+                                    or is_staff)):
+        url = reverse('queue-list')
+        query_params = urlencode({'error': "You do not have permission to access this queue."})
+        redirect_url = f"{url}?{query_params}"
+        return redirect(redirect_url)
+    
     
     context['queue'] = queue 
     context['queueID'] = queue.id
@@ -91,13 +99,19 @@ def queue_settings_action(request, id):
             return redirect('queue-list')
 
     # Query for current staff to display
-    current_staff = queue.allowedStaff.all().order_by('nickname')
+    current_staff = queue.allowedStaff.all().order_by('-nickname')
+    
+    current_students = []
+    if not queue.isPublic:
+        current_students = queue.allowedStudents.all().order_by('-nickname')
 
     context = {
         'queue': queue,
         'current_staff': current_staff, 
         'DEBUG': settings.DEBUG,
         'account': account,
+        'isPublic': "true" if queue.isPublic else "false",
+        'current_students': current_students,
     }
     return render(request, 'ohq/queue-settings.html', context)
 
@@ -183,18 +197,30 @@ def user_search_api(request, id):
     
     queue = get_object_or_404(Queue, id=id)
     query_str = request.GET.get('q', '')
+    staff_lookup = request.GET.get('lookupStaff') == "true"
 
     if not query_str:
         return JsonResponse([], safe=False) # Return empty list if no query
 
-    # Find accounts matching query that are NOT already staff
-    results = Account.objects.filter(
-        Q(nickname__icontains=query_str) | Q(email__icontains=query_str)
-    ).exclude(
-        staff__id=queue.id
-    ).values(
-        'id', 'nickname', 'email', 'isAdmin' 
-    )[:10] # Limit to 10 results
+    if staff_lookup:
+        # Find accounts matching query that are NOT already staff
+        results = Account.objects.filter(
+            Q(nickname__icontains=query_str) | Q(email__icontains=query_str)
+        ).exclude(
+            staff__id=queue.id
+        ).values(
+            'id', 'nickname', 'email', 'isAdmin' 
+        )[:10] # Limit to 10 results
+    else:
+        # Find accounts matching query that are NOT already permitted to look at queue
+        results = Account.objects.filter(
+            Q(nickname__icontains=query_str) | Q(email__icontains=query_str)
+        ).exclude(
+            students__id=queue.id
+        ).values(
+            'id', 'nickname', 'email', 'isAdmin' 
+        )[:10] # Limit to 10 results
+
 
     return JsonResponse(list(results), safe=False)
 
@@ -226,6 +252,14 @@ def manage_queue_staff_api(request, id):
             queue.allowedStaff.add(account_to_manage)
         elif action == 'remove':
             queue.allowedStaff.remove(account_to_manage)
+            # removed staff can't be helping anyone
+            for entry in AccountEntry.objects.filter(helping_staff=account_to_manage, queue=queue):
+                entry.helping_staff = None
+                entry.status = AccountEntry.STATUS_WAITING
+                entry.save()
+            # or be on the queue if they aren't an allowed student.
+            if not (queue.allowedStudents.filter(id=account_to_manage.id)).exists():
+                AccountEntry.objects.filter(account=account_to_manage, queue=queue).delete()
         elif action == 'toggle_admin':
             is_admin = data.get('is_admin')
             if is_admin is None:
@@ -235,6 +269,74 @@ def manage_queue_staff_api(request, id):
             account_to_manage.save()
         else:
             raise ValueError('Invalid action')
+        queue.save()
+
+        return JsonResponse({'status': 'ok'})
+
+    except Exception as e:
+        return HttpResponseBadRequest(json.dumps({'error': str(e)}), content_type='application/json')
+
+# --- API View for Setting Queue to (non)Public ---
+@login_required
+def toggle_queue_visibility_api(request, id):
+    print('/api_toggle_queue_visibility')
+    
+    # Authorization
+    account = get_object_or_404(Account, user=request.user)
+    if not (account.isAdmin or request.user.is_superuser):
+        return HttpResponseForbidden(json.dumps({'error': 'Not authorized.'}), content_type='application/json')
+
+    if request.method != 'POST':
+        return HttpResponseBadRequest(json.dumps({'error': 'Must use POST.'}), content_type='application/json')
+
+    try:
+        queue = get_object_or_404(Queue, id=id)
+
+        queue.isPublic = not queue.isPublic
+        queue.save()
+
+        return JsonResponse({'status': 'ok', 'students': queue.get_students()})
+
+    except Exception as e:
+        return HttpResponseBadRequest(json.dumps({'error': str(e)}), content_type='application/json')
+
+# --- API View for Managing Students ---
+@login_required
+def manage_queue_students_api(request, id):
+    print('/api_manage_student')
+    
+    # Authorization
+    account = get_object_or_404(Account, user=request.user)
+    if not (account.isAdmin or request.user.is_superuser):
+        return HttpResponseForbidden(json.dumps({'error': 'Not authorized.'}), content_type='application/json')
+
+    if request.method != 'POST':
+        return HttpResponseBadRequest(json.dumps({'error': 'Must use POST.'}), content_type='application/json')
+
+    try:
+        data = json.loads(request.body)
+        action = data.get('action')
+        account_id_to_manage = data.get('account_id')
+        
+        print(action, account_id_to_manage)
+        if not action or not account_id_to_manage:
+            raise ValueError('Missing action or account_id')
+
+        queue = get_object_or_404(Queue, id=id)
+        account_to_manage = get_object_or_404(Account, id=account_id_to_manage)
+
+        if action == 'add':
+            queue.allowedStudents.add(account_to_manage)
+        elif action == 'remove':
+            queue.allowedStudents.remove(account_to_manage)
+            # student should no longer be on queue for this course
+            # unless they're staff still
+            if not (queue.allowedStaff.filter(id=account_to_manage.id)).exists():
+                AccountEntry.objects.filter(account=account_to_manage, queue=queue).delete()
+        else:
+            raise ValueError('Invalid action')
+
+        queue.save()
 
         return JsonResponse({'status': 'ok'})
 
@@ -328,9 +430,9 @@ def _create_debug_queues():
     if len(Queue.objects.all()) > 0:
         return False
     queue = Queue()
-    queue.queueName = "17-437"
+    queue.queueName = "Web Application Development"
     queue.courseNumber = '17437'
-    queue.description = "This is a test queue with a very very very very very very long description"
+    queue.description = "This is a test queue with a very very very very very very very very very very very very long description"
     queue.save()
 
     queue2 = Queue()
@@ -340,8 +442,8 @@ def _create_debug_queues():
     queue2.save()
     
     queue3 = Queue()
-    queue3.queueName = "15112"
-    queue3.courseNumber = '15112'
+    queue3.queueName = "Principles of Imperative Computation"
+    queue3.courseNumber = '15122'
     queue3.save()
 
     queue4 = Queue()

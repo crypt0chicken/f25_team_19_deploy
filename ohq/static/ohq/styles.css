@@ -99,7 +99,7 @@ a.nav-btn {
 }
 
 /* ----------------------------------------------------
- * 3. Class Grid Layout (NEW ADDITIONS FOR RESPONSIVENESS)
+ * 3. Class Grid Layout 
  * ---------------------------------------------------- */
 
 /* Default: Single column layout for mobile devices */
@@ -222,7 +222,6 @@ a.nav-btn {
 }
 /* --- END MODIFICATION --- */
 
-/* --- New Button Style --- */
 .btn-danger {
     background-color: #dc3545;
     color: white;
@@ -243,7 +242,6 @@ a.nav-btn {
 .btn-danger:active {
     transform: translateY(1px);
 }
-/* --- End New Style --- */
 
 a.no-underline {
     text-decoration: none;
@@ -253,6 +251,7 @@ a.no-underline {
  * 6. Forms and Inputs
  * ---------------------------------------------------- */
 input[type="text"],
+input[type="password"],
 textarea,
 select {
     width: 100%;
@@ -430,7 +429,7 @@ hr.vertical {
 }
 
 /* ----------------------------------------------------
- * 12. Social Auth Buttons (NEW)
+ * 12. Social Auth Buttons
  * ---------------------------------------------------- */
 
 .socialaccount_providers {
@@ -476,7 +475,7 @@ hr.vertical {
 /* You can add more providers like .github, .facebook etc. */
 
 /* ----------------------------------------------------
- * 13. Announcement Modal (NEW)
+ * 13. Announcement Modal
  * ---------------------------------------------------- */
 
 #announcement-modal-overlay {
@@ -508,7 +507,7 @@ hr.vertical {
 }
 
 /* ----------------------------------------------------
- * 14. Freeze-All Modal (NEW)
+ * 14. Freeze-All Modal
  * ---------------------------------------------------- */
 
 #freeze-all-modal-overlay {
@@ -542,7 +541,7 @@ hr.vertical {
 }
 
 /* ----------------------------------------------------
- * 15. Delete Queue Modal (NEW)
+ * 15. Delete Queue Modal
  * ---------------------------------------------------- */
 
 #delete-queue-modal-overlay {
@@ -660,3 +659,44 @@ hr.vertical {
     bottom: 2rem;
     right: 2rem;
  }
+
+/* ----------------------------------------------------
+ * 18. Remove Staff Modal
+ * ---------------------------------------------------- */
+
+#remove-staff-modal-overlay {
+    display: none; /* Hidden by default */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+}
+
+#remove-staff-modal-content {
+    background-color: #ffffff;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-width: 500px;
+    width: 90%;
+    z-index: 2001;
+}
+
+/* ----------------------------------------------------
+ * 19. Status Indicators
+ * ---------------------------------------------------- */
+
+.status-frozen {
+    color: #007bff; /* Blue */
+    font-weight: 600;
+}
+
+.status-helping {
+    color: #28a745; /* Green */
+    font-weight: 600;
+}

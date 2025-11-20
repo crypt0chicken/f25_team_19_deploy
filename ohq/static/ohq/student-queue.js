@@ -43,15 +43,24 @@ function connectToServer(queueID) {
             return; // Don't process this as a state update
         }
 
-        // --- New: Handle Announcement ---
         if (response.type === 'announcement') {
             showAnnouncement(response.message);
             return; // Don't process this as a state update
         } else if (response.type === 'queue-deleted') {
             window.location.pathname = ''
             return
+        } else if (response.type === 'redirect-home') {
+            var message = ''
+            if (!response.hasOwnProperty('message')) {
+                message = "You do not have permission to access this queue."
+            } else {
+                message = response.message
+            }
+            window.location.href = `/?error=${encodeURIComponent(message)}`
+            return
+        } else if (response.type === 'update-staff-status') {
+            isStaff = response['isStaff']
         }
-        // --- End New ---
         
         updateState(response)
     }
@@ -88,15 +97,18 @@ function updateState(response) {
 function updateQueueStatus(isOpen) {
     let elem = document.getElementById("queue-status")
     let toggleBtn = document.getElementById("toggle-queue-btn")
+    let askBtn = document.getElementById("ask-question-btn")
     
     if (isOpen) {
         elem.innerHTML = "OPEN"
         elem.className = "open-status"
         if (toggleBtn) toggleBtn.innerText = "Close Queue"
+        if (askBtn) askBtn.style.visibility = "visible"
     } else {
         elem.innerHTML = "CLOSED"
         elem.className = "close-status"
         if (toggleBtn) toggleBtn.innerText = "Open Queue"
+        if (askBtn) askBtn.style.visibility = "hidden"
     }
 }
 
@@ -180,12 +192,18 @@ function createStaffStudentEntry(entry, position) {
 
     let statusIndicator = ""
     if (entry.status === 'helping') {
-        statusIndicator = `(Helping: ${entry.helping_staff_name})`
+        // Sanitize helping staff name
+        let safeStaffName = entry.helping_staff_name ? sanitize(entry.helping_staff_name) : "";
+        statusIndicator = `<span class="status-helping">(Helping: ${safeStaffName})</span>`
     } else if (entry.status === 'frozen') {
-        statusIndicator = `(Frozen)`
+        statusIndicator = `<span class="status-frozen">(Frozen)</span>`
     }
 
-    let left = `<div><strong>#${position} ${entry.name}</strong> ${statusIndicator}<br><p>${entry.question}</p></div>`
+    // Sanitize name and question
+    let safeName = sanitize(entry.name)
+    let safeQuestion = sanitize(entry.question)
+
+    let left = `<div><strong>#${position} ${safeName}</strong> ${statusIndicator}<br><p>${safeQuestion}</p></div>`
     
     let buttons = `
         <button class="btn-primary" onclick="helpStudent(${entry.id})">Help</button>
@@ -205,12 +223,15 @@ function createStudentStudentEntry(entry, position) {
     let myIndicator = (entry.account_id === myAccountID) ? " (You)" : ""
     let statusIndicator = ""
     if (entry.status === 'helping') {
-        statusIndicator = `(Being Helped)`
+        statusIndicator = `<span class="status-helping">(Being Helped)</span>`
     } else if (entry.status === 'frozen') {
-        statusIndicator = `(Frozen)`
+        statusIndicator = `<span class="status-frozen">(Frozen)</span>`
     }
     
-    elem.innerHTML = `<span><strong>#${position} ${entry.name}${myIndicator}</strong> ${statusIndicator}</span>`
+    // Sanitize name
+    let safeName = sanitize(entry.name)
+    
+    elem.innerHTML = `<span><strong>#${position} ${safeName}${myIndicator}</strong> ${statusIndicator}</span>`
     return elem
 }
 
@@ -270,12 +291,12 @@ function sendAnnouncement() {
     textBox.value = ""; // Clear the box after sending
 }
 
-// --- New Function ---
+
 function sendFreezeAll() {
     socket.send(JSON.stringify({ action: "freeze-all" }));
     hideFreezeAllModal();
 }
-// --- End New Function ---
+
 
 
 // =================== MODAL FUNCTIONS =====================
@@ -289,7 +310,7 @@ function hideAnnouncement() {
     document.getElementById("announcement-modal-overlay").style.display = "none";
 }
 
-// --- New Functions ---
+
 function showFreezeAllModal() {
     document.getElementById("freeze-all-modal-overlay").style.display = "flex";
 }
@@ -297,7 +318,7 @@ function showFreezeAllModal() {
 function hideFreezeAllModal() {
     document.getElementById("freeze-all-modal-overlay").style.display = "none";
 }
-// --- End New Functions ---
+
 
 
 // =========================HELPER FUNCTIONS=========================
@@ -337,7 +358,7 @@ window.addEventListener('load', (event) => {
         sendAnnouncementBtn.onclick = sendAnnouncement;
     }
 
-    // --- New Listeners ---
+   
     // Add listener for the staff freeze-all button (if it exists)
     let freezeAllBtn = document.getElementById("freeze-all-btn");
     if (freezeAllBtn) {
@@ -354,5 +375,5 @@ window.addEventListener('load', (event) => {
     if (freezeAllCancelBtn) {
         freezeAllCancelBtn.onclick = hideFreezeAllModal;
     }
-    // --- End New Listeners ---
+
 });

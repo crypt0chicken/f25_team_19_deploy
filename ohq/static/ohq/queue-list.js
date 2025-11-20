@@ -176,7 +176,12 @@ function makeQueueItemElement(queueItem, queueListType) {
     let element = document.createElement("div")
     element.id = id
     element.className = `queue-item-box ${className}`
-    element.innerHTML = `<div class="queue-item-box-row">${queueName} ${pinButton}</div>${queueItem.number}<div class="queue-item-box-row">${description} ${openButton}</div>`
+    if (queueItem.isPublic) {
+        element.innerHTML = `<div class="queue-item-box-row">${queueName} ${pinButton}</div>${queueItem.number}<div class="queue-item-box-row">${description} ${openButton}</div>`
+    } else {
+        // add indication that queue is private
+        element.innerHTML = `<div class="queue-item-box-row">${queueName} ${pinButton}</div>${queueItem.number} (Private) <div class="queue-item-box-row">${description} ${openButton}</div>`
+    }
 
     return element
 }

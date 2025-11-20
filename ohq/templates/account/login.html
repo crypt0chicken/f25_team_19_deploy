@@ -37,11 +37,22 @@
                 </div>
         
                 <p>{% blocktrans %}Sign in with your admin username and password:{% endblocktrans %}</p>
+                <p>[Temporary note for 17437 staff looking to test the site in production: The superuser username is "admin", with password "password."]</p>
 
                 <form class="login" method="post" action="{% url 'account_login' %}">
                     {% csrf_token %}
                     
-                    {{ form.as_p }}
+                    {{ form.non_field_errors }}
+                    {% for field in form %}
+                        <p>
+                            {{ field.label_tag }}
+                            {{ field }}
+                            {% if field.help_text and field.name != 'password' %}
+                                <span class="helptext">{{ field.help_text|safe }}</span>
+                            {% endif %}
+                            {{ field.errors }}
+                        </p>
+                    {% endfor %}
         
                     {% if redirect_field_value %}
                     <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />

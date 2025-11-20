@@ -43,9 +43,9 @@ class CreateQueueForm(forms.ModelForm):
         }
         
         help_texts = {
+
             'freeze_timeout': (
-                'Time in seconds a "frozen" student remains frozen before being '
-                'automatically returned to the queue. '
+                'Time in seconds before a "frozen" student is automatically returned to the queue. '
                 'Set to 0 to disable auto-unfreezing.'
             ),
         }

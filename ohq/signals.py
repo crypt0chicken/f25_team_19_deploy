@@ -1,7 +1,7 @@
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.contrib.auth.models import User
-from .models import Account, Queue
+from .models import Account, AccountEntry, Queue
 from .consumers import QueueConsumer, QueueListConsumer
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
@@ -44,21 +44,20 @@ def create_or_update_ohq_account(sender, instance, created, **kwargs):
 def queue_updated(sender, instance, created, **kwargs):
     """
     Handles issue of those viewing a queue not immediately learning of
-    queue being opened/closed or otherwise updated
+    queue being opened/closed, membership/publicity being changed, people's
+    staff status possibly changing, etc.
     """
     channel_layer = get_channel_layer()
 
-    if created:
-        # trigger entire home page to refresh for everyone
-        print("Queue created!")
-        group_name = QueueListConsumer.group_name
-        async_to_sync(channel_layer.group_send)(
-            group_name,
-            {
-                'type': 'queue_add',
-            }
-        )
-    else:
+    # trigger entire home page to refresh for everyone
+    group_name = QueueListConsumer.group_name
+    async_to_sync(channel_layer.group_send)(
+        group_name,
+        {
+            'type': 'queue_add',
+        }
+    )
+    if not created:
         # inform those who are vieiwng the queue that the queue has been updated
         group_name = QueueConsumer.group_name + f'_{instance.id}'
         async_to_sync(channel_layer.group_send)(
@@ -67,6 +66,7 @@ def queue_updated(sender, instance, created, **kwargs):
                 'type': 'queue_update',
                 'model_data': {
                     'queue-status': instance.isOpen,
+                    'queue-publicity': instance.isPublic,
                 }
             }
         )
@@ -95,5 +95,36 @@ def queue_deleted(sender, instance, **kwargs):
         {
             'type': 'queue_delete',
             'queueID': instance.id,
+        }
+    )
+
+@receiver(post_save, sender=AccountEntry)
+def accountEntry_updated(sender, instance, **kwargs):
+    """
+    If the staff member is made no longer staff but they are helping a student,
+    the corresponding account entry should be updated.
+    """
+    channel_layer = get_channel_layer()
+    group_name = QueueConsumer.group_name + f'_{instance.queue.id}'
+    async_to_sync(channel_layer.group_send)(
+        group_name,
+        {
+            'type': 'refresh_account_entries'
+        }
+    )
+
+
+@receiver(post_delete, sender=AccountEntry)
+def accountEntry_deleted(sender, instance, **kwargs):
+    """
+    Account entries can be deleted when an account is removed from having
+    access to a queue. List of students on the queue should be updated.
+    """
+    channel_layer = get_channel_layer()
+    group_name = QueueConsumer.group_name + f'_{instance.queue.id}'
+    async_to_sync(channel_layer.group_send)(
+        group_name,
+        {
+            'type': 'refresh_account_entries'
         }
     )

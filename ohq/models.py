@@ -23,6 +23,30 @@ class Queue(models.Model):
     pinnedQueues = models.ManyToManyField(Account, related_name = 'pinned')
     # field linking queues to who has hidden them
     hiddenQueues = models.ManyToManyField(Account, related_name = 'hidden')
+
+    def get_staff(self):
+        result = []
+        all_entries = self.allowedStaff.all().order_by('-nickname')
+        for entry in all_entries:
+            entry_dict = {
+                'id': entry.id,
+                'nickname': entry.nickname,
+                'email': entry.email,
+            }
+            result.append(entry_dict)
+        return result
+    
+    def get_students(self):
+        result = []
+        all_entries = self.allowedStudents.all().order_by('-nickname')
+        for entry in all_entries:
+            entry_dict = {
+                'id': entry.id,
+                'nickname': entry.nickname,
+                'email': entry.email,
+            }
+            result.append(entry_dict)
+        return result
     
     @classmethod
     def get_queues(cls, account, orderBy='queueName'):
@@ -35,12 +59,17 @@ class Queue(models.Model):
         else:
             all_entries = cls.objects.all().order_by(orderBy)
         for entry in all_entries:
+            is_staff = entry.allowedStaff.filter(id=account.id).exists() or account.isAdmin or account.user.is_superuser
+            if (not entry.isPublic and not (entry.allowedStudents.filter(id=account.id).exists()
+                                            or is_staff)):
+                continue
             entry_dict = {
                 'id': entry.id,
                 'name': entry.queueName,
                 'number': entry.courseNumber[:2] + '-' + entry.courseNumber[2:],
                 'description': entry.description,
                 'status': entry.isOpen,
+                'isPublic': entry.isPublic,
             }
             if entry in pinned:
                 pinned_list.append(entry_dict)
@@ -48,7 +77,6 @@ class Queue(models.Model):
         return pinned_list, all_queues
 
     @classmethod
-    # TODO: use account to only return courses that account should be able to see
     def get_queues_from_search(cls, account, query):
         if query == '':
             return []
@@ -66,12 +94,17 @@ class Queue(models.Model):
             all_entries = cls.objects.filter(models.Q(queueName__istartswith=query) |
                                              models.Q(courseNumber__istartswith=query)).order_by('queueName')
         for entry in all_entries:
+            is_staff = entry.allowedStaff.filter(id=account.id).exists() or account.isAdmin or account.user.is_superuser
+            if (not entry.isPublic and not (entry.allowedStudents.filter(id=account.id).exists()
+                                            or is_staff)):
+                continue
             entry_dict = {
                 'id': entry.id,
                 'name': entry.queueName,
                 'number': entry.courseNumber[:2] + '-' + entry.courseNumber[2:],
                 'description': entry.description,
                 'status': entry.isOpen,
+                'isPublic': entry.isPublic,
             }
             all_queues.append(entry_dict)
         return all_queues

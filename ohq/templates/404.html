@@ -1,0 +1,43 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Office Hours Queue - Page Not Found</title>
+    <link rel="stylesheet" href="{% static 'ohq/styles.css' %}"> 
+    <script src="{% static 'ohq/queue-list.js' %}" type="text/javascript"></script>
+</head>
+<body>
+
+    <div class="header-bar">
+        <div class="header-bar-left">
+            <a href="/" style="color: white; text-decoration: none; font-size: 1.5rem; font-weight: 600;">
+                CMU OHQ 42
+            </a>
+        </div>
+        <div class="header-bar-right">
+            <div class="header-dropdown-container">
+                <span class="nav-btn header-bar-text" tabindex="0">
+                    {% if account %}
+                        {{ account.nickname }}
+                    {% else %}
+                        Account
+                    {% endif %}
+                </span>
+                <div class="header-dropdown-menu">
+                    <a href="{% url 'user-control-panel' %}">Account</a>
+                    <a href="{% url 'account_logout' %}">Log Out</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1>Your page is in another castle!</h1>
+        <div>
+            Perhaps you want to go <a href="{% url 'queue-list' %}">home</a>.
+        </div>
+    </div>
+</body>
+</html>

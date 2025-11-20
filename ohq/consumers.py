@@ -113,9 +113,26 @@ class QueueConsumer(WebsocketConsumer):
         model_data = event['model_data']
         if 'queue-status' in model_data:
             self.queue.isOpen = model_data['queue-status']
+        if 'queue-publicity' in model_data:
+            self.queue.isPublic = model_data['queue-publicity']
+            if not self.queue.isPublic: # refresh entire queue
+                self.queue = Queue.objects.get(id=self.queue.id)
+                # check whether user should be redirected to home
+                is_staff = self.queue.allowedStaff.filter(id=self.account.id).exists() or self.account.isAdmin or self.account.user.is_superuser
+                if (not (self.queue.allowedStudents.filter(id=self.account.id).exists() or is_staff)):
+                    self.send(text_data=json.dumps({'type': 'redirect-home', 
+                                                    'message': "You do not have permission to access this queue."}))
+                else:
+                    # try to promote/demote user
+                    self.send(text_data=json.dumps({'type': 'update-staff-status',
+                                                    'isStaff': is_staff}))
+
 
     def queue_delete(self, event):
         self.send(text_data=json.dumps({'type': 'queue-deleted'}))
+
+    def refresh_account_entries(self, event):
+        self.broadcast_queue_state()
 
     def received_ask_question(self, data):
         if 'text' not in data:
@@ -164,7 +181,7 @@ class QueueConsumer(WebsocketConsumer):
 
     def received_toggle_queue(self, data):
         if not self.is_staff():
-            return self.send_error('You are not authorized to toggle this queue.')
+            return self.send_error('You are not authorized to toggle this queue; you must be queue staff.')
                 
         self.queue.isOpen = not self.queue.isOpen
         self.queue.save()
@@ -172,7 +189,7 @@ class QueueConsumer(WebsocketConsumer):
 
     def received_update_status(self, data, new_status):
         if not self.is_staff():
-            return self.send_error('You are not authorized to perform this action.')
+            return self.send_error('You are not authorized to perform this action; you must be queue staff.')
         
         if 'entry_id' not in data:
             return self.send_error('"entry_id" not sent in JSON.')
@@ -199,7 +216,7 @@ class QueueConsumer(WebsocketConsumer):
 
     def received_remove_entry(self, data):
         if not self.is_staff():
-            return self.send_error('You are not authorized to perform this action.')
+            return self.send_error('You are not authorized to perform this action; you must be queue staff.')
         
         if 'entry_id' not in data:
             return self.send_error('"entry_id" not sent in JSON.')
@@ -214,7 +231,7 @@ class QueueConsumer(WebsocketConsumer):
 
     def received_send_announcement(self, data):
         if not self.is_staff():
-            return self.send_error('You are not authorized to send an announcement.')
+            return self.send_error('You are not authorized to send an announcement; you must be queue staff.')
         
         if 'text' not in data or not data['text']:
             return self.send_error('Announcement text cannot be empty.')
@@ -223,7 +240,7 @@ class QueueConsumer(WebsocketConsumer):
 
     def received_freeze_all(self, data):
         if not self.is_staff():
-            return self.send_error('You are not authorized to perform this action.')
+            return self.send_error('You are not authorized to freeze the queue; you must be queue staff.')
 
         # Find all waiting students and freeze them
         # Set freezeTime to None to prevent auto-unfreezing
@@ -328,13 +345,13 @@ class QueueListConsumer(WebsocketConsumer):
 
     def queue_add(self, event):
         # re-broadcast whatever the main queue list section view is like
-        print("Hello?")
-        print(repr(self.query), self.last_sort_type)
         if len(self.query) == 0:
             print("self.last_sort_type")
             self.received_sort({'type': self.last_sort_type})
         else:
             self.received_search({"query": self.query})
+
+        self.broadcast_pinned()
 
     # A queue has been deleted
     def queue_delete(self, event):
