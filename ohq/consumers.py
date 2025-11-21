@@ -91,6 +91,8 @@ class QueueConsumer(WebsocketConsumer):
                 self.received_leave_queue(data)
             case 'unfreeze': 
                 self.received_unfreeze(data)
+            case 'refresh':
+                self.received_refresh(data)
         # COURSE STAFF ACTIONS
             case 'freeze':
                 self.received_update_status(data, AccountEntry.STATUS_FROZEN)
@@ -178,6 +180,9 @@ class QueueConsumer(WebsocketConsumer):
                 self.broadcast_queue_state()
         except AccountEntry.DoesNotExist:
             self.send_error('You are not on this queue.')
+
+    def received_refresh(self, data):
+        self.broadcast_queue_state()
 
     def received_toggle_queue(self, data):
         if not self.is_staff():

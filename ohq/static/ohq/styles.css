@@ -197,7 +197,6 @@ a.nav-btn {
     box-shadow: none;
 }
 
-/* --- MODIFICATION: Replaced .btn-secondary-outline with .btn-secondary --- */
 .btn-secondary {
     background-color: #6c757d; /* Standard gray for secondary actions */
     color: white;
@@ -221,7 +220,6 @@ a.nav-btn {
 .btn-secondary:active {
     transform: translateY(1px); /* Match press-down effect */
 }
-/* --- END MODIFICATION --- */
 
 .btn-danger {
     background-color: #dc3545;
@@ -360,12 +358,12 @@ a:hover {
     background-color: #d4edda;
 }
 
-/* --- MODIFICATION: Added error class style --- */
+
 .error {
     color: #dc3545; /* Red color, matches .close-status */
     font-weight: 600;
 }
-/* --- END MODIFICATION --- */
+
 
 /* ----------------------------------------------------
  * 11. Utility Classes (Icons and Spacing)

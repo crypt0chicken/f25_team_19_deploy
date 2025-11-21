@@ -7,6 +7,7 @@
  */
 let socket = null
 let myAccountID = -1 // Global variable to store the user's account ID
+let autoUnfreezeTimer = null // Timer for auto-unfreezing logic
 
 
 function connectToServer(queueID) {
@@ -89,8 +90,11 @@ function updateState(response) {
         updateQueueStatus(response['queue-status'])
     }
 
+    // Extract timeout, default to 0 if not present (server sends 'queue_freeze_timeout')
+    let freezeTimeout = response.hasOwnProperty('queue_freeze_timeout') ? response['queue_freeze_timeout'] : 0;
+
     if (response.hasOwnProperty('students')) {
-        updateStudents(response['students'])
+        updateStudents(response['students'], freezeTimeout)
     }
 }
 
@@ -112,7 +116,13 @@ function updateQueueStatus(isOpen) {
     }
 }
 
-function updateStudents(accountEntryList) {
+function updateStudents(accountEntryList, freezeTimeout = 0) {
+    // Clear any existing timer to prevent duplicates/stale timers
+    if (autoUnfreezeTimer) {
+        clearTimeout(autoUnfreezeTimer);
+        autoUnfreezeTimer = null;
+    }
+
     // Update total student count
     let countElem = document.getElementById("student-count")
     let verb = accountEntryList.length == 1 ? "is" : "are"
@@ -167,6 +177,22 @@ function updateStudents(accountEntryList) {
                 statusMessageElem.innerText = "You have been FROZEN." // Mockup text
                 statusMessageElem.style.display = "block"
                 unfreezeBtn.style.display = "inline-block";
+
+                // Calculate auto-refresh time if a timeout is configured
+                if (freezeTimeout > 0 && myEntry.freezeTime) {
+                    let freezeTime = new Date(myEntry.freezeTime).getTime();
+                    let currentTime = new Date().getTime();
+                    // freezeTimeout is in seconds, convert to ms
+                    let unfreezeTime = freezeTime + (freezeTimeout * 1000);
+                    let remainingTime = unfreezeTime - currentTime;
+                    
+                    // Schedule refresh slightly after timeout (+1s buffer)
+                    let delay = remainingTime + 1000;
+                    if (delay < 0) delay = 0; // Execute immediately if time passed
+                    
+                    autoUnfreezeTimer = setTimeout(triggerAutoRefresh, delay);
+                }
+
             } else if (myEntry.status === 'helping') {
                 let staffName = myEntry.helping_staff_name || "A TA"
                 statusMessageElem.innerText = `${staffName} is coming to help!` // Mockup text
@@ -257,6 +283,11 @@ function leaveQueue() {
 
 function unfreezeMe() {
     let data = {action: "unfreeze"};
+    socket.send(JSON.stringify(data));
+}
+
+function triggerAutoRefresh() {
+    let data = {action: "refresh"};
     socket.send(JSON.stringify(data));
 }
 
