@@ -259,9 +259,9 @@ class QueueConsumer(WebsocketConsumer):
 
     # This function will broadcast everything related to the queue state.
     def broadcast_queue_state(self):
-        timeout_minutes = self.queue.freeze_timeout
-        if timeout_minutes > 0: # Only run if auto-unfreeze is enabled
-            cutoff_time = timezone.now() - timezone.timedelta(minutes=timeout_minutes)
+        timeout_seconds = self.queue.freeze_timeout
+        if timeout_seconds > 0: # Only run if auto-unfreeze is enabled
+            cutoff_time = timezone.now() - timezone.timedelta(seconds=timeout_seconds)
             stale_entries = AccountEntry.objects.filter(
                 queue=self.queue,
                 status=AccountEntry.STATUS_FROZEN,
