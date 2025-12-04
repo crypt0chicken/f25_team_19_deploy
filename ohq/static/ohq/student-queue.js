@@ -19,15 +19,15 @@ function connectToServer(queueID) {
         displayError("WebSocket Error: " + error) // <-- Fixed: "D" is now "D"
     }
 
-    // Show a connected message when the WebSocket is opened.
-    socket.onopen = function(event) {
-        displayError("WebSocket Connected")
-    }
+    // // Show a connected message when the WebSocket is opened.
+    // socket.onopen = function(event) {
+    //     displayError("WebSocket Connected")
+    // }
 
-    // Show a disconnected message when the WebSocket is closed.
-    socket.onclose = function(event) {
-        displayError("WebSocket Disconnected")
-    }
+    // // Show a disconnected message when the WebSocket is closed.
+    // socket.onclose = function(event) {
+    //     displayError("WebSocket Disconnected")
+    // }
 
     // Handle messages received from the server.
     socket.onmessage = function(event) {
