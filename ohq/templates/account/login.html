@@ -37,7 +37,6 @@
                 </div>
         
                 <p>{% blocktrans %}Sign in with your admin username and password:{% endblocktrans %}</p>
-                <p>[Temporary note for 17437 staff looking to test the site in production: The superuser username is "admin", with password "password."]</p>
 
                 <form class="login" method="post" action="{% url 'account_login' %}">
                     {% csrf_token %}

@@ -1,10 +1,5 @@
 "use strict"
 
-/*
- * Use a global variable for the socket.  Poor programming style, I know,
- * but I think the simpler implementations of the deleteItem() and addItem()
- * functions will be more approachable for students with less JS experience.
- */
 let socket = null
 let myAccountID = -1 // Global variable to store the user's account ID
 let autoUnfreezeTimer = null // Timer for auto-unfreezing logic
@@ -222,7 +217,13 @@ function createStaffStudentEntry(entry, position) {
         let safeStaffName = entry.helping_staff_name ? sanitize(entry.helping_staff_name) : "";
         statusIndicator = `<span class="status-helping">(Helping: ${safeStaffName})</span>`
     } else if (entry.status === 'frozen') {
-        statusIndicator = `<span class="status-frozen">(Frozen)</span>`
+        let timeString = "";
+        if (entry.freezeTime) {
+            let date = new Date(entry.freezeTime);
+            // Format to HH:MM AM/PM (or 24h depending on locale)
+            timeString = " at " + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+        statusIndicator = `<span class="status-frozen">(Frozen${timeString})</span>`
     }
 
     // Sanitize name and question

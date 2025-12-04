@@ -115,14 +115,16 @@ a.nav-btn {
 @media (min-width: 768px) {
     .class-grid {
         /* On desktop/tablet, show two columns */
-        grid-template-columns: repeat(2, 1fr); 
+        /* Changed from 1fr to minmax(0, 1fr) to enforce strict width equality */
+        grid-template-columns: repeat(2, minmax(0, 1fr)); 
     }
 }
 
 @media (min-width: 1024px) {
     .class-grid {
         /* On large desktop screens, show three columns */
-        grid-template-columns: repeat(3, 1fr); 
+        /* Changed from 1fr to minmax(0, 1fr) to enforce strict width equality */
+        grid-template-columns: repeat(3, minmax(0, 1fr)); 
     }
 }
 
@@ -136,6 +138,11 @@ a.nav-btn {
     padding: 20px;
     /* Removed margin-bottom here to let the 'gap' property handle spacing */
     transition: transform 0.2s, box-shadow 0.2s;
+
+    /* ADDED: Ensure text wraps and respects the grid width */
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
 }
 
 .queue-item-box-row {
@@ -700,4 +707,12 @@ hr.vertical {
 .status-helping {
     color: #28a745; /* Green */
     font-weight: 600;
+}
+
+/* Utility for wrapping long text strings */
+.queue-description {
+    overflow-wrap: break-word; /* Standard property */
+    word-wrap: break-word;     /* Legacy support */
+    word-break: break-word;    /* Ensures break at arbitrary points if needed */
+    white-space: pre-wrap;     /* Preserves user line breaks if entered */
 }

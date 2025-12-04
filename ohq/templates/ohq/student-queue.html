@@ -43,13 +43,11 @@
         </div>
     </div>
 
-    {% if DEBUG %}
     <span class="container error" id="error">
     </span>
-    {% endif %}
     
     <div class="container">
-        <p class="mt-3">{{ description }}</p>
+        <p class="mt-3 queue-description">{{ description }}</p>
         <div class="queue-status">
             <h2 class="mt-3"><span class="weak">The queue is currently</span> <span id="queue-status"></span> </h2>
             <hr class="vertical">
